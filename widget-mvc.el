@@ -116,12 +116,13 @@ This function kills the old buffer if it exists."
 (defstruct wmvc:context lang template model validations widget-map action-map attributes)
 
 (defun wmvc:context-attr-set (context name value)
-  (let ((attrs (wmvc:context-attributes context)))
-    (cond
-     ((assq name attrs)
-      (let ((pair (assq name attrs)))
-        (setf (cdr pair) value)))
-     (t (setq attrs (cons (cons name value) attrs))))
+  (let ((attrs (loop for (k . v) in (wmvc:context-attributes context)
+                     if (eq k name)
+                     collect (cons k value)
+                     else
+                     collect (cons k v))))
+    (when (not (assq name attrs))
+      (setq attrs (cons (cons name value) attrs)))
     (setf (wmvc:context-attributes context) attrs)))
 
 (defun wmvc:context-attr-get (context name)
@@ -295,7 +296,7 @@ This function kills the old buffer if it exists."
 
 (defun wmvc:bind-from-widgets (context)
   (loop with widget-map = (wmvc:context-widget-map context)
-        with model = (wmvc:context-model context)
+        with model = (copy-alist (wmvc:context-model context))
         for (name . widget) in widget-map
         for pair = (assq name model)
         if pair
