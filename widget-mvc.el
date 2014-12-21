@@ -316,6 +316,7 @@ This function kills the old buffer if it exists."
                 collect (cons name result))))
     (when fails
       (wmvc:context-attr-set ctx 'error fails)
+      (setf (wmvc:context-model ctx) model)
       (wmvc:reload-buffer ctx)
       (throw 'fail nil))))
 
